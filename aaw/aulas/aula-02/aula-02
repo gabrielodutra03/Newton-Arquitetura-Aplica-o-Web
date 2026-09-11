@@ -1,0 +1,197 @@
+# HANDOUT — AULA 02
+
+## Dissecando o HTTP
+
+*6 requisições sob o microscópio — Arquitetura de Aplicações Web*
+
+## 🎯 MISSÃO
+
+Vocês interceptaram 6 conversas entre um app e a API de uma biblioteca. Para CADA card:
+
+- Descrevam o que o cliente pediu (verbo + recurso na URI)
+- Expliquem o que o status code da resposta informa
+- Respondam: repetindo a MESMA requisição 3 vezes seguidas, o estado do servidor muda?
+
+Ao final, preencham juntos a TABELA-SÍNTESE dos verbos na última página.
+
+*⏱️ Tempo: 30 minutos  |  👥 Formato: em duplas  |  Dica: o card 6 esconde uma pegadinha de quem é a culpa.*
+
+> **Nomes:** ____Gabriel Otone________________   **Turma:** ______Sistemas de informação______________   **Data:** __10_ / _09__ / ___2026___
+
+## REQUISIÇÃO 01 — A prateleira inteira
+
+```text
+→ REQUISIÇÃO
+GET /api/livros HTTP/1.1
+Host: biblioteca.newton.br
+Accept: application/json
+```
+
+```text
+← RESPOSTA
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[ { "id": 1, "titulo": "Clean Code", "autor": "Robert C. Martin" },
+  { "id": 7, "titulo": "O Programador Pragmático", "autor": "Hunt & Thomas" } ]
+```
+
+**Sua análise:**
+
+1. O que o cliente pediu (verbo + recurso)? Pediu a lista dos livros
+
+2. O que o status code informa? Deu certo? Culpa de quem se não deu? A requisição foi processada com sucesso e os livros foram retornados.
+
+3. Repetindo esta requisição 3 vezes seguidas, o estado do servidor muda? E a resposta? O status não muda pois o verbo é GET. A resposta pode ser a mesma, desde que os dados não tenham mudado por outra operação.
+
+## REQUISIÇÃO 02 — O livro fantasma
+
+```text
+→ REQUISIÇÃO
+GET /api/livros/99 HTTP/1.1
+Host: biblioteca.newton.br
+Accept: application/json
+```
+
+```text
+← RESPOSTA
+HTTP/1.1 404 Not Found
+Content-Type: application/problem+json
+
+{ "title": "Not Found", "status": 404 }
+```
+
+**Sua análise:**
+
+1. O que o cliente pediu (verbo + recurso)? Pediu o livro ID 99
+
+2. O que o status code informa? Deu certo? Culpa de quem se não deu? O status code informa que o recurso solicitado não foi encontrado. Não deu certo. O problema está relacionado ao recurso solicitado de ID 99.
+
+3. Repetindo esta requisição 3 vezes seguidas, o estado do servidor muda? E a resposta? A resposta continua a mesma, até que o livro 99 exista.
+
+## REQUISIÇÃO 03 — Livro novo na estante
+
+```text
+→ REQUISIÇÃO
+POST /api/livros HTTP/1.1
+Host: biblioteca.newton.br
+Content-Type: application/json
+
+{ "titulo": "Domain-Driven Design", "autor": "Eric Evans" }
+```
+
+```text
+← RESPOSTA
+HTTP/1.1 201 Created
+Location: /api/livros/8
+Content-Type: application/json
+
+{ "id": 8, "titulo": "Domain-Driven Design", "autor": "Eric Evans" }
+```
+
+**Sua análise:**
+
+1. O que o cliente pediu (verbo + recurso)? Pediu a criação de um livro.
+
+2. O que o status code informa? Deu certo? Culpa de quem se não deu? Deu certo. O status code informa que foi criado com sucesso.
+
+3. Enviando este POST 3 vezes seguidas, o que acontece na estante? Para que serve o header Location? Serão criado 3 livros. O header Location informa onde o novo recurso criado pode ser encontrado.
+
+## REQUISIÇÃO 04 — Corrigindo a ficha completa
+
+```text
+→ REQUISIÇÃO
+PUT /api/livros/7 HTTP/1.1
+Host: biblioteca.newton.br
+Content-Type: application/json
+
+{ "id": 7, "titulo": "O Programador Pragmático", "autor": "D. Hunt; D. Thomas" }
+```
+
+```text
+← RESPOSTA
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{ "id": 7, "titulo": "O Programador Pragmático", "autor": "D. Hunt; D. Thomas" }
+```
+
+**Sua análise:**
+
+1. O que o cliente pediu (verbo + recurso)? Pediu a substituição/atualização completa do livro de ID 7 com os dados enviados.
+
+2. O que o status code informa? Deu certo? Culpa de quem se não deu? Significa que a atualização foi realizada com sucesso
+
+3. Repetindo esta requisição 3 vezes seguidas, o estado do servidor muda? E a resposta? O servidor termina no mesmo estado após cada requisição, pois os mesmos dados estão sendo enviados. 
+
+
+## REQUISIÇÃO 05 — Fora do catálogo
+
+```text
+→ REQUISIÇÃO
+DELETE /api/livros/7 HTTP/1.1
+Host: biblioteca.newton.br
+```
+
+```text
+← RESPOSTA
+HTTP/1.1 204 No Content
+```
+
+**Sua análise:**
+
+1. O que o cliente pediu (verbo + recurso)? Pediu a exclusão do livro de ID 7.
+
+2. O que o status code informa? Deu certo? Culpa de quem se não deu? Significa que a operação foi realizada com sucesso e a resposta não possui conteúdo no corpo. Deu certo.
+
+3. Repetindo o DELETE, o estado do servidor muda? Que resposta você ESPERA na segunda vez? O servidor não muda. Dependendo da implementação da API, pode-se esperar 404 Not Found, porque o livro já não existe.
+
+## REQUISIÇÃO 06 — O cadastro capenga
+
+```text
+→ REQUISIÇÃO
+POST /api/livros HTTP/1.1
+Host: biblioteca.newton.br
+Content-Type: application/json
+
+{ "autor": "Anônimo" }
+```
+
+```text
+← RESPOSTA
+HTTP/1.1 400 Bad Request
+Content-Type: application/problem+json
+
+{ "title": "Bad Request", "status": 400,
+  "errors": { "Titulo": [ "O campo Titulo é obrigatório" ] } }
+```
+
+**Sua análise:**
+
+1. O que o cliente pediu (verbo + recurso)? Tentou criar um novo livro.
+
+2. O que o status code informa? Deu certo? Culpa de quem se não deu? Significa que a requisição é inválida. Nesse caso, faltou o campo obrigatório Titulo que o cliente não preencheu.
+
+3. Repetindo esta requisição 3 vezes seguidas, o estado do servidor muda? E a resposta? O estado do servidor não muda, porque nenhuma das requisições é aceita e nenhum livro é criado. A resposta continuará sendo 400 Bad Request, enquanto a requisição continuar sem o título.
+
+## TABELA-SÍNTESE — Os verbos do HTTP
+
+*Preencham com base nos 6 cards. “Seguro” = não altera nada no servidor. “Idempotente” = repetir N vezes deixa o servidor no mesmo estado que 1 vez.*
+
+| **Verbo** | **Para que serve** | **Seguro?** | **Idempotente?** | **Status típicos** |
+| --- | --- | --- | --- | --- |
+| **`GET`** | Consultar/obter recursos | SIM  | SIM | 200, 404 |
+| **`POST`** | Criar recursos ou executar uma operação | NÃO  | NÃO |201, 400, 409 |
+| **`PUT`** |Criar/substituir completamente um recurso  | NÃO | SIM |200, 201, 204, 400, 404  |
+| **`PATCH`** |	Alterar parcialmente um recurso  | NÃO | NÃO |200, 204, 400, 404  |
+| **`DELETE`** |Excluir um recurso | NÃO | SIM  |200, 204, 404  |
+
+## DESAFIO
+
+1. O verbo PATCH não apareceu em nenhum card. Qual a diferença entre PATCH e PUT? Um app de banco quer alterar SÓ o apelido do usuário, entre dezenas de campos do perfil — qual dos dois você usaria e por quê?
+
+PUT normalmente é usado para substituir o recurso inteiro. Já PATCH é usado para fazer uma alteração parcial.
+
+No caso do aplicativo de banco, em que queremos alterar somente o apelido do usuário, eu usaria PATCH, porque não é necessário enviar novamente todos os outros campos do perfil.
+
+Com PUT, normalmente seria necessário enviar a representação completa do usuário, enquanto o PATCH permite modificar apenas o campo necessário.

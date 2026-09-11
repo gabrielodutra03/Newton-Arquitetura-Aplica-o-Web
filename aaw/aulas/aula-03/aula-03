@@ -13,7 +13,7 @@ A EscolaTech contratou a consultoria de vocês para auditar a API do sistema esc
 
 *⏱️ Tempo: 25 minutos  |  👥 Formato: em duplas  |  Dica: se a rota conta o que faz em português, algo está errado.*
 
-> **Nomes:** ___Gabriel Otone e Cauã Papa_________________   **Turma:** ____________________   **Data:** _20__ / _08__ / _2026_____
+> **Nomes:** ___Gabriel Otone_________________   **Turma:** ____________________   **Data:** _20__ / _08__ / _2026_____
 
 ## ENDPOINT 01 — POST /api/getAlunos
 
@@ -43,7 +43,7 @@ Obs. da wiki: "dá pra deletar pelo navegador, bem prático".
 
 1. Qual(is) problema(s) de design vocês identificam? O problema é o Get que deveria ser Delete e o retorno está incorreto
 
-2. Seu redesenho (método + rota + status codes):
+2. Seu redesenho (método + rota + status codes): DELETE /api/v1/alunos/7
 
 ## ENDPOINT 03 — POST /api/alunos (criação)
 
@@ -56,9 +56,9 @@ Cria o aluno e responde: 200 OK + body "OK".
 O app precisa buscar a lista inteira de novo para descobrir o ID gerado.
 ```
 
-1. Qual(is) problema(s) de design vocês identificam?
+1. Qual(is) problema(s) de design vocês identificam? O endpoint está sem versionamento, o correto é indicar que recurso foi criado.
 
-2. Seu redesenho (método + rota + status codes): 
+2. Seu redesenho (método + rota + status codes):  POST /api/v1/alunos
 
 ## ENDPOINT 04 — GET /escolas/1/turmas/3/alunos/25/matriculas/88/disciplinas/12
 
@@ -88,7 +88,8 @@ O app mobile quebra tentando fazer parse do JSON.
 
 1. Qual(is) problema(s) de design vocês identificam? O retorno está incorreto
 
-2. Seu redesenho (método + rota + status codes):
+2. Seu redesenho (método + rota + status codes): GET /api/v1/alunos/7/matriculas
+200 OK
 
 ## ENDPOINT 06 — PUT /api/atualizarNotaParcial?aluno=7&disc=12&nota=8.5
 
@@ -101,10 +102,19 @@ Todos os dados vão na query string.
 Resposta: 200 OK + "OK".
 ```
 
-1. Qual(is) problema(s) de design vocês identificam?
+1. Qual(is) problema(s) de design vocês identificam? Está usando PUT para alterar apenas uma parte do recurso. Nesse caso, PATCH é mais apropriado.
 
-2. Seu redesenho (método + rota + status codes):
+2. Seu redesenho (método + rota + status codes): PATCH /api/v1/alunos/7/disciplinas/12
 
 ## DESAFIO
 
-1. A EscolaTech quer lançar mudanças na API sem quebrar o app mobile antigo, que não recebe atualização há 2 anos. Que decisão de design — que falta na API INTEIRA — resolve esse problema? Como ficariam as rotas?
+1. A EscolaTech quer lançar mudanças na API sem quebrar o app mobile antigo, que não recebe atualização há 2 anos. Que decisão de design — que falta na API INTEIRA — resolve esse problema? Como ficariam as rotas? 
+
+O design que falta na API é o versionamento. A API poderia utilizar /api/v1/ nas rotas atuais e, futuramente, criar /api/v2/ para mudanças incompatíveis. Dessa forma, o aplicativo mobile antigo continuaria funcionando com a versão 1, enquanto novos aplicativos poderiam utilizar a versão 2.
+
+Endpoint	Redesenho
+02	DELETE /api/v1/alunos/7
+03	POST /api/v1/alunos
+04	GET /api/v1/disciplinas/12
+05	GET /api/v1/alunos/7/matriculas
+06	PATCH /api/v1/alunos/7/disciplinas/12
