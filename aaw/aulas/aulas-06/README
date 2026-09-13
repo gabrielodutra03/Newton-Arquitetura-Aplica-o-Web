@@ -1,0 +1,115 @@
+FASE 1 — Explorar os serviços auxiliares
+
+Teste 1:
+
+{
+    "pedidoId": "5ddef61e-794e-479e-ac17-df9d0a62ce1c",
+    "aprovado": true,
+    "mensagem": "Pagamento aprovado pela operadora",
+    "tempoProcessamentoMs": 1015.9716
+}
+
+Teste 2:
+
+{
+    "pedidoId": "cf3d7d8a-9310-40c9-8952-2b2225d3d9ac",
+    "aprovado": false,
+    "mensagem": "Pagamento rejeitado: valor acima do limite de R$ 10.000",
+    "tempoProcessamentoMs": 1010.8969
+}
+
+Teste 3:
+
+{
+    "sucesso": true,
+    "mensagem": "E-mail enviado para maria@email.com: Teste",
+    "tempoProcessamentoMs": 3011.0949
+}
+
+FASE 2-
+
+{
+    "pedidoId": "22a1cbdc-8af4-48ed-98a9-dc807fd7ba74",
+    "status": "aprovado",
+    "notificacao": "simulado",
+    "fluxo": "sincrono",
+    "tempoTotalMs": 1.2435,
+    "observacao": "⏱️ Note o tempo total — inclui a espera da notificação!"
+}
+
+Não falhou mas o tempo de resposta foi muito diferente da primeira vez.
+
+FASE 3-
+
+{
+    "pedidoId": "93cb0e25-674b-4797-b62c-6cff1b94d2fe",
+    "status": "aprovado",
+    "notificacao": "pendente — será processada em background",
+    "fluxo": "assincrono",
+    "tempoTotalMs": 1.0194,
+    "observacao": "⚡ Compare este tempo com o fluxo síncrono!"
+}
+
+FASE 4- 
+
+Experimento 1-
+
+1- Sim, retornam com menos de 1 segundo, por exemplo:
+
+{
+    "pedidoId": "36188183-3b49-479e-bf08-7fa7025dfe6c",
+    "status": "aprovado",
+    "notificacao": "pendente — será processada em background",
+    "fluxo": "assincrono",
+    "tempoTotalMs": 0.8197,
+    "observacao": "⚡ Compare este tempo com o fluxo síncrono!"
+}
+2- Sim, olhando no CMD todas as requisiçoes foram processadas em sequencia.
+
+Experimento 2- Sincrono e Assincrono.
+Could not send request
+Error:ECONNREFUSED
+
+Experimento 3-
+
+{
+    "pedidoId": "76f56393-ab51-4c59-bd92-be11b80c3c24",
+    "status": "aprovado",
+    "notificacao": "pendente — será processada em background",
+    "fluxo": "assincrono",
+    "tempoTotalMs": 2.7512,
+    "observacao": "⚡ Compare este tempo com o fluxo síncrono!"
+}
+
+{
+    "pedidoId": "db06a657-2eeb-4ed9-b5d5-8cf485246914",
+    "status": "aprovado",
+    "notificacao": "simulado",
+    "fluxo": "sincrono",
+    "tempoTotalMs": 105.5483,
+    "observacao": "⏱️ Note o tempo total — inclui a espera da notificação!"
+}
+
+Por algum motivo nao rejeitou mas o tempo total foi extremamente alto.
+
+FASE 5-
+
+1-
+
+O pagamento é síncrono porque o sistema precisa saber imediatamente se o pagamento foi aprovado ou rejeitado antes de continuar o processamento do pedido. 
+
+Assim, a resposta para o cliente já informa se o pedido foi aceito.
+
+Para o assíncrono, nesse caso, o pedido ficaria inicialmente como "aguardando pagamento" e o resultado seria informado posteriormente por outro evento.
+
+2- Como o Channel<T> fica somente na memória da aplicação, se a aplicação for encerrada ou reiniciada, os eventos que ainda estavam na fila são perdidos.
+
+3- Um exemplo seria o RabbitMQ, que permite armazenar e controlar as mensagens mesmo quando o consumidor apresenta problemas.
+
+4- O consumidor não deveria simplesmente perder o evento. O ideal seria tentar novamente algumas vezes utilizando retry com backoff, aumentando o intervalo entre as tentativas.
+
+Se continuar falhando depois do limite de tentativas, a mensagem poderia ser enviada para uma Dead-Letter Queue (DLQ). Assim, ela não é perdida e pode ser analisada ou processada posteriormente.
+
+5- Fluxo	Tempo de resposta	Notificação chega?
+Síncrono	~105.5483 ms	x Imediata / ☐ Pode falhar
+Assíncrono	~2.7512ms	x Em background / ☐ Garantida?
